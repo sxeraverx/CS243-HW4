@@ -58,6 +58,8 @@ class NullChecker implements ExFlow.Analysis
 
 	public void genVar(String v) {set.add(v);}
 	public void killVar(String v) {set.remove(v);}
+
+	public boolean contains(String v){return set.contains(v);}
     }
 
     private Map<Quad, VarSet> in;
@@ -122,7 +124,7 @@ class NullChecker implements ExFlow.Analysis
 	exit.setToBottom();
 	    
 
-	transferfn.val = new VarSet();
+	transferfn.preval = new VarSet();
     }
 
     @Override
@@ -264,29 +266,50 @@ class NullChecker implements ExFlow.Analysis
     private TransferFunction transferfn = new TransferFunction();
 
     @Override
-	public void processQuad(Quad q, ControlFlowGraph cfg) {
+	public void processQuad(Quad q) {
         System.out.println("Processing: "+q);
-        System.out.println(in.get(q));
-	transferfn.val.copy(getAllIn(q));
-        System.out.println(transferfn.val);
+	transferfn.preval.copy(getAllIn(q));
+        System.out.println(transferfn.preval);
+	transferfn.postval = new HashMap<Quad, VarSet>(out.get(q));
 	transferfn.visitQuad(q);
-        setAllOut(q, transferfn.val);
+	for(Quad k : transferfn.postval.keySet())
+	    setOut(q, k, transferfn.postval.get(k));
     }
 
     public static class TransferFunction extends QuadVisitor.EmptyVisitor
     {
 	    
-	VarSet val;
+	VarSet preval;
+	Map<Quad, VarSet> postval;
 	@Override
 	    public void visitQuad(Quad q)
 	{
-            System.out.println("preval:  " + val);
-            for (RegisterOperand def : q.getDefinedRegisters())
-                val.killVar(def.getRegister().toString());
-            for (RegisterOperand use : q.getUsedRegisters())
-                if(q.getOperator() instanceof Operator.NullCheck)
-                    val.genVar(use.getRegister().toString());
-            System.out.println("postval: " + val);
+	    VarSet nval = new VarSet();
+	    nval.copy(preval);
+            System.out.println("preval:  " + preval);
+
+	    if(q.getOperator() instanceof Operator.Move)
+		{
+		    //object move semantics
+		    boolean src_null_checked = true;
+		    for (RegisterOperand use : q.getUsedRegisters())
+			if(!preval.contains(use.getRegister().toString()))
+			    src_null_checked = false;
+		    for (RegisterOperand def : q.getDefinedRegisters())
+			if(src_null_checked)
+			    nval.genVar(def.getRegister().toString());
+		}
+	    else
+		{
+		    for (RegisterOperand def : q.getDefinedRegisters())
+			nval.killVar(def.getRegister().toString());
+		    for (RegisterOperand use : q.getUsedRegisters())
+			if(q.getOperator() instanceof Operator.NullCheck)
+			    nval.genVar(use.getRegister().toString());
+		    for(Quad k : postval.keySet())
+			postval.put(k, nval);
+		}
+            System.out.println("postval: " + postval);
 	}
     }
 }

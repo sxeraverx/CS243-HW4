@@ -122,7 +122,7 @@ public abstract class ExFlow
          * Apply the transfer function to one quad.
          * @param q the quad on which to perform the transfer function
          */
-	void processQuad(Quad q, ControlFlowGraph cfg);
+	void processQuad(Quad q);
     }
 
     /** The dataflow analysis solver.

@@ -59,7 +59,7 @@ public class ExSolver implements ExFlow.Solver {
             while (analyzer.isForward() && quadIterator.hasNext()
                    || !analyzer.isForward() && quadIterator.hasPrevious()) {
                 // process each quad
-                if (processQuad(quadIterator, cfg)) {
+                if (processQuad(quadIterator)) {
                     changed = true;
                 }
             }
@@ -84,7 +84,7 @@ public class ExSolver implements ExFlow.Solver {
      * process
      * @return true if the node's value changed, false otherwise
      */
-    private boolean processQuad(QuadIterator quadIterator, ControlFlowGraph cfg) {
+    private boolean processQuad(QuadIterator quadIterator) {
         // get the quad to process
         Quad quad =
             analyzer.isForward()
@@ -113,7 +113,7 @@ public class ExSolver implements ExFlow.Solver {
         /**///System.out.println("Out: " + analyzer.getOut(quad).toString());
 
         // process the quad
-        analyzer.processQuad(quad, cfg);
+        analyzer.processQuad(quad);
         /**///System.out.println("In: " + analyzer.getIn(quad).toString());
         /**///System.out.println("Out: " + analyzer.getOut(quad).toString());
 
