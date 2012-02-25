@@ -1,1 +1,15 @@
-Describe your design in this file.
+Currently, the only optimizations the optimizer takes are removing null
+checks. Null checks on variables moved from one register to another are
+also removed (the "already null-checked" state is propagated on register
+move).
+
+Anticipated, available, and postponable expressions are also implemented,
+but there is a bug somewhere in postponable expressions, so it doesn't
+compute latest[b] correctly, and so the partial redundancy elimination
+optimization using postponable expressions are currently not enabled. Feel
+free to review the code, though.
+
+We also expanded the solver and flow to be able to take advantage of
+branch conditions--each quad can have multiple, independent "out"s, one
+per successor, and those are each propagated only to that successor. This
+modification isn't taken advantage of by any current optimization, though.

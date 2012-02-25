@@ -30,7 +30,7 @@ public class ExSolver implements ExFlow.Solver {
 
         // initialize the internal node values
         QuadIterator quadIterator = new QuadIterator(cfg);
-        while (quadIterator.hasNext()) {
+        /*while (quadIterator.hasNext()) {
             Quad quad = quadIterator.next();
             // get a new value and set it to top
             ExFlow.DataflowObject topValue = analyzer.newTempVar();
@@ -45,7 +45,7 @@ public class ExSolver implements ExFlow.Solver {
                     analyzer.setIn(quad, pred, topValue);
                 }
             }
-        }
+	    }*/
 
         // iterate over all quads repeatedly as long as there's change in
         // any node's value
@@ -99,12 +99,11 @@ public class ExSolver implements ExFlow.Solver {
             for(Quad pred : quadIterator.predecessors1())
                 postval.put(pred, analyzer.getIn(quad, pred));
         // reset In/Out value and meet with all predecessors/successors
+	preval.setToTop();
         if (analyzer.isForward()) {
-	    preval.setToTop();
 	    meetAllPredecessors(preval, quadIterator);
 	    analyzer.setAllIn(quad, preval);
         } else {
-	    preval.setToTop();
 	    meetAllSuccessors(preval, quadIterator);
 	    analyzer.setAllOut(quad, preval);
         }
@@ -122,14 +121,11 @@ public class ExSolver implements ExFlow.Solver {
         if (analyzer.isForward()) {
             for(Quad succ : quadIterator.successors1())
                 newValue.put(succ, analyzer.getOut(quad,succ));
-            System.out.println("NV: "+newValue);
-            System.out.println("PV: "+postval);
-            return !newValue.equals(postval);
         } else {
             for(Quad pred : quadIterator.predecessors1())
                 newValue.put(pred, analyzer.getIn(quad,pred));
-            return !newValue.equals(postval);
         }
+	return !newValue.equals(postval);
     }
 
     /**
